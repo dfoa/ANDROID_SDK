@@ -584,14 +584,14 @@ public class DiscoveryService extends Service {
     }
 
 
-    private void threadMsg(int msg) {
+//    private void threadMsg(int msg) {
   //future feature to change scan cycles  	
             Message msgObj = handler.obtainMessage();
   //          Bundle b = new Bundle();
    //         b.putInt("message", msg);
     //        msgObj.setData(b);
     //        handler.sendMessage(msgObj);
-        }
+  //      }
     
     
   public void cleanQeue(){

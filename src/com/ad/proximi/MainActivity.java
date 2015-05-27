@@ -182,6 +182,7 @@ public class MainActivity extends ListActivity {
 									currentMenu.findItem(R.id.scanning_indicator).setVisible(false); 
 									currentMenu.findItem(R.id.scanning_stop).setVisible(false);
 									currentMenu.findItem(R.id.scanning_start).setVisible(true);
+									m.stop();
 
 
 					mScanning = false;

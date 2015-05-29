@@ -2,8 +2,11 @@ package com.ad.IntroMi;
 
 
 import java.util.ArrayList;
+
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -22,7 +25,8 @@ import com.ad.IntroMi.R;
 
 public class MainActivity extends ListActivity {
 
-
+    /**request the user to enable bluetooth**/
+	private final int REQUEST_ENABLE_BT_DISCOVERY = 1;
 	/**flag to indicate GUI  if scanning or not**/
 	public boolean mScanning;
 	/**preparing the log to be more clear**/
@@ -30,14 +34,14 @@ public class MainActivity extends ListActivity {
 	protected static final Boolean D = true;
 
 	public   BluetoothDevice  	 device ; 
-	//*initiate IntroMi Framework*//
+	/**initiate IntroMi Framework**/
 	ServiceManager  m;
 	boolean mBound = false;
-	//* application context*//
+	/** application context**/
 	private static Context mContext;
-	//*array  to hold names in the list
+	/**array  to hold names in the list**/
 	private ArrayList<String> namesList;
-	//*adapter of the list*//
+	/**adapter of the list**/
 	ArrayAdapter<String> adapter;	
 	private Menu  currentMenu;
 	/**the name to register that represent this device**/
@@ -60,7 +64,6 @@ public class MainActivity extends ListActivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
 		//To stop the service when application is destroyed.		
 		m.stop();
 	}
@@ -74,23 +77,17 @@ public class MainActivity extends ListActivity {
 		mContext = getApplicationContext();
 		mScanning = false;
 
-
+        //register local broadcasts 
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.ACTION_ERRORS"));
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.ACTION_MESSAGE"));
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.BT_DISCOVERY_FINISHED"));
 
-		m = ServiceManager.getInstance(getApplicationContext());
+		m = ServiceManager.getInstance(mContext);
 		m.setLog(true);
 
 	}
 
 
-	
-	
-	// Method to stop the service
-	public void stopService() {
-			stopService(new Intent(getBaseContext(), DiscoveryService.class));
-	}
 
 
 
@@ -104,13 +101,11 @@ public class MainActivity extends ListActivity {
 			System.out.println("This is the name of intent" + intent.getAction());
 			if (intent.getAction().equals("com.ad.proxymi.ACTION_MESSAGE")){
 				Profile p = new Profile();
-				System.out.println("profile is action message");
 				intent.getParcelableExtra("profile");
 
 				Bundle data = new Bundle();
 				data = intent.getExtras();
 				p = data.getParcelable("profile");
-				System.out.println("This is the profile arrived from Service" + p.getId()  + "and the name is " + p.getName());
 				namesList.add(p.getName());
 				// adding to the UI have to happen in UI thread
 				runOnUiThread(new Runnable() {
@@ -189,9 +184,19 @@ public class MainActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.scanning_start:
-			mScanning = true;
-			m.startManualScan();
-			mScanning = true;
+			if (isBtSupported()){
+			   BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();			
+			   mBluetoothAdapter.enable();			
+			  if (isBtDiscoverable()) {
+			     mScanning = true;
+			     m.startManualScan();
+			  }else 
+			  {
+				  Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+				    intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 0);
+				    startActivityForResult(intent,REQUEST_ENABLE_BT_DISCOVERY); 
+			  }
+			}
 			break;
 		case R.id.scanning_stop:
 			mScanning = false;
@@ -200,7 +205,6 @@ public class MainActivity extends ListActivity {
 			break;
 		case R.id.register:
 
-			System.out.println("Registered prerssed");
 			final EditText name = new EditText(this);
 
 			// Set the default text to a link of the Queen
@@ -233,10 +237,48 @@ public class MainActivity extends ListActivity {
 
 
 
+	
+	
+private boolean isBtSupported() {
+	
+	BluetoothAdapter mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+	/*
+	 * check if  bluetooth is supported on this device. 
+	 */
+	
+	if (mBtAdapter == null) {
+	    // Device does not support Bluetooth
+		System.out.println("BT is not supported on this device");
+		 return false;
+	}
+	
+	return true;		
+}
+	
 
-
+private boolean isBtDiscoverable() {
+	
+	BluetoothAdapter mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+	if(mBtAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+    
+     return true;
+	
+}
+	return false;
+	
 }
 
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if(requestCode==REQUEST_ENABLE_BT_DISCOVERY && resultCode==Activity.RESULT_OK) {	                 
+			 System.out.println("Discovery is now enabled");
+		     mScanning = true;
+		     m.startManualScan();
+			  
+	}
+
+
+	}
+}
 
 
 

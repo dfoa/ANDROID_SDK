@@ -1,22 +1,20 @@
 package com.ad.IntroMi;
 
-import java.util.ArrayList;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
-
-import android.R.array;
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 public class Utils {
 
+private static String TAG = "Utils"; 
 	
-	
-	public static JSONStringer buildJson(String selfMac,String foundMac,long time){
+	protected static JSONStringer buildJson(String selfMac,String foundMac,long time){
 		
 		  JSONStringer 	mJSONStringer = new JSONStringer();
 			try {
@@ -52,7 +50,7 @@ public class Utils {
 			}
 			
 			try {
-				mJSONStringer.key("time");
+				mJSONStringer.key("timestamp");
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -76,7 +74,7 @@ public class Utils {
 			
 		}
 	
-	public static boolean isNetworkAvailable(Activity activity) {
+	protected static boolean isNetworkAvailable(Activity activity) {
 		ConnectivityManager connectivity = (ConnectivityManager) activity
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		if (connectivity == null) {
@@ -95,7 +93,7 @@ public class Utils {
 	}
  
 	
-public static String[] split (String s)
+protected static String[] split (String s)
 {
    
 	String delims = "[;]";
@@ -138,11 +136,25 @@ protected  static Profile parseJson(String str) {
 		// TODO Auto-generated catch block
 		    e.printStackTrace();
 	      }
- 
 	
 	return profile;
 }    
 
-
+  protected static boolean isBtDiscoverable(){
+	  
+	  BluetoothAdapter mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+	  if(mBtAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
+		{
+			Log.v(TAG,"Bluetooth is not discoverable");
+			return false;
+		}
+	  return true;
+  }
+    
+  protected  static  boolean isBtenabled () {
+	  
+	  BluetoothAdapter mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+	  return (mBtAdapter.isEnabled());		       
+  }
 	
 }

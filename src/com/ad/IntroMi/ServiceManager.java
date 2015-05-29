@@ -44,22 +44,33 @@ public class ServiceManager {
 	}
 
 	public  void  start(){	
-
+		
+        if (Utils.isBtDiscoverable() && Utils.isBtenabled()){
+        	
+        
 		parameters  =  new ServiceArgument("Fiix","http://192.168.50.5", "80");
 		Intent intent = new Intent(context, DiscoveryService.class);
 		intent.putExtra("args",parameters);
 		context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE); 
+        }
+        else 
+        	Log.v(TAG,"Bluetoth is not enable/discoverable");
+		
 
 	}
 
      public void startManualScan() {
 	
+    	 if (Utils.isBtDiscoverable() && Utils.isBtenabled()){
+         	
 	     parameters  =  new ServiceArgument("Fiix","http://192.168.50.5", "80",MANUAL_SCAN);
 	     Intent intent = new Intent(context, DiscoveryService.class);
 	     intent.putExtra("args",parameters);
 	     context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE); 
-
-	
+ 
+    	 }
+    	 else 
+         	Log.v(TAG,"Bluetoth is not enable/discoverable");
 	
 }
 	

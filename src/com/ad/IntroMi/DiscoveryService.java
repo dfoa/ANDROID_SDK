@@ -120,6 +120,8 @@ public class DiscoveryService extends Service {
 		if(mBtAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 		{
 			BroadcastErrors(Errors.ERR_BT_IS_NOT_DISCOVERABLE);
+			Log.v(TAG,"Bluetooth is not discoverable");
+			
 		}
 		mSelfMac = mBtAdapter.getAddress();
 		mArrayOfMacs = new ArrayList<String>();
@@ -587,7 +589,7 @@ public class DiscoveryService extends Service {
 
 //    private void threadMsg(int msg) {
   //future feature to change scan cycles  	
-            Message msgObj = handler.obtainMessage();
+ //           Message msgObj = handler.obtainMessage();
   //          Bundle b = new Bundle();
    //         b.putInt("message", msg);
     //        msgObj.setData(b);

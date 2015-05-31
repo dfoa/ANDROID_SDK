@@ -20,7 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import com.ad.IntroMi.R;
 
 
 public class MainActivity extends ListActivity {
@@ -78,9 +77,9 @@ public class MainActivity extends ListActivity {
 		mScanning = false;
 
         //register local broadcasts 
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.ACTION_ERRORS"));
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.ACTION_MESSAGE"));
-		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("com.ad.proxymi.BT_DISCOVERY_FINISHED"));
+		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(ServiceManager.ERRORS));
+		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(ServiceManager.MESSAGE));
+		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(ServiceManager.BT_DISCOVERY_FINISHED));
 
 		m = ServiceManager.getInstance(mContext);
 		m.setLog(true);
@@ -98,14 +97,12 @@ public class MainActivity extends ListActivity {
 		public void onReceive(Context context, Intent intent) {
 
 
-			System.out.println("This is the name of intent" + intent.getAction());
-			if (intent.getAction().equals("com.ad.proxymi.ACTION_MESSAGE")){
+			if (ServiceManager.MESSAGE.equals(intent.getAction())){
 				Profile p = new Profile();
-				intent.getParcelableExtra("profile");
-
+//				intent.getParcelableExtra("Profile");
 				Bundle data = new Bundle();
 				data = intent.getExtras();
-				p = data.getParcelable("profile");
+				p = data.getParcelable("Profile");
 				namesList.add(p.getName());
 				// adding to the UI have to happen in UI thread
 				runOnUiThread(new Runnable() {
@@ -119,8 +116,8 @@ public class MainActivity extends ListActivity {
 
 			}
 			else 
-				if (intent.getAction().equals("com.ad.proxymi.BT_DISCOVERY_FINISHED")){
-					System.out.println("Discoveryhas finished12345");
+				if (ServiceManager.BT_DISCOVERY_FINISHED.equals(intent.getAction())){
+					
 					currentMenu.findItem(R.id.scanning_indicator).setVisible(false); 
 					currentMenu.findItem(R.id.scanning_stop).setVisible(false);
 					currentMenu.findItem(R.id.scanning_start).setVisible(true);
@@ -132,16 +129,18 @@ public class MainActivity extends ListActivity {
 				}
 
 				else 
+					if(ServiceManager.ERRORS.equals(intent.getAction()))
 				{
 					switch (intent.getIntExtra("Error", -1)) {
 					case Errors.ERR_BT_IS_NOT_DISCOVERABLE:
 					{
-						Log.v("BT is not discaoverable", null);
+						Log.v("BT is not discoverable", null);
 						break;
 					}
 					case Errors.ERR_BTV2_IS_NOT_SUPPORTED:
 					{
 						Log.v("BT is not supported", null);
+						finish();
 						break;
 					}
 
@@ -184,6 +183,8 @@ public class MainActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.scanning_start:
+			/**some tests to make sure BT  is supported and discoverable*/
+			/************************************************************/
 			if (isBtSupported()){
 			   BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();			
 			   mBluetoothAdapter.enable();			

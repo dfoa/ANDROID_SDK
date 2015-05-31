@@ -10,10 +10,15 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.util.Log;
+import com.ad.IntroMi.Utils;
+
+
 
 public class ServiceManager {
 
-	
+    public static final String ERRORS = "com.ad.intromi.ACTION_ERRORS";		  
+    public static final String BT_DISCOVERY_FINISHED = "com.ad.intromi.BT_DISCOVERY_FINISHED";
+    public static final String MESSAGE = "com.ad.intromi.ACTION_MESSAGE"; 		
 	private static DiscoveryService mService = new DiscoveryService();
 	private static boolean mBound = false;
 	private static Context context;
@@ -22,7 +27,7 @@ public class ServiceManager {
 	/** print log  **/
 	static Boolean D = true;
 	/** TAG description*/
-	private String TAG = "ServiceManager";
+	private static String TAG = "ServiceManager";
 	private static String MANUAL_SCAN = "m";
 
 	private ServiceManager(Context c){
@@ -45,7 +50,7 @@ public class ServiceManager {
 
 	public  void  start(){	
 		
-        if (Utils.isBtDiscoverable() && Utils.isBtenabled()){
+      if (Utils.isBtDiscoverable() && Utils.isBtenabled()){
         	
         
 		parameters  =  new ServiceArgument("Fiix","http://192.168.50.5", "80");
@@ -98,14 +103,14 @@ public class ServiceManager {
 
 		@Override
 		public void onServiceDisconnected(ComponentName arg0) {
-//			if (D) Log.v("Service is disconnected");
+			if (D) Log.v(TAG,"Service is disconnected");
 			mBound = false;
 		}
 	};
 
       public  void setLog(boolean yesNo) {
 	
-         mService.setLog(yesNo);
+       mService.setLog(yesNo);
       }
       
       public void  ScanInterval(int scanIterval){

@@ -85,7 +85,7 @@ public class DiscoveryService extends Service {
 	// Random number generator
 	private  Thread thread;
 
-	
+    
 	
 	
 	
@@ -271,6 +271,8 @@ public class DiscoveryService extends Service {
 	@Override
 	public void onRebind(Intent intent) {
 
+		if (D) Log.v(TAG, "Service is rebind");
+		
 	}
 
 	/** Called when The service is no longer used and is being destroyed */
@@ -347,7 +349,7 @@ public class DiscoveryService extends Service {
 					if (D) Log.v(TAG,"This is the current devices array" + mArrayOfMacs.toString());
 					if (mArrayOfMacs.size() >= 1) mArrayOfMacs.add(mDevice.getAddress());
 
-					if (D) Log.v(TAG,"Going to update server with device " + mDevice.getAddress());
+					if (D) Log.v(TAG,"Ask server for information about device " + mDevice.getAddress());
 
 					/*
 					 * update the server with
@@ -458,9 +460,10 @@ public class DiscoveryService extends Service {
 			case 200:
 
 				HttpEntity h = response.getEntity();
-				if(h != null)
+				if(h.getContentLength() == 0)
 				{
-                 BroadcastErrors(Errors.ERR_INTROMI_SERVER_IS_UNREACHABLE);
+				 if (D) Log.v(TAG, "Couldnt find this device in DB");
+                //BroadcastErrors(Errors.ERR_INTROMI_SERVER_IS_UNREACHABLE);
 				}
 				break;
 
@@ -502,7 +505,7 @@ public class DiscoveryService extends Service {
 
 			String result = sb.toString();
 			printToLog("This is the result" + result);
-			
+
 			return result;
 		} finally {
 			if (in != null) {
@@ -522,7 +525,7 @@ public class DiscoveryService extends Service {
 	 */
 	public void  BroadcastErrors(int e) {
 
-		Intent intent = new Intent("com.ad.proxymi.ACTION_ERRORS");	
+		Intent intent = new Intent(ServiceManager.ERRORS);	
 		intent.putExtra("Error", e);
 		if (D) Log.v(TAG,"Got error number " + e);
 		LocalBroadcastManager.getInstance(getApplicationContext());
@@ -535,12 +538,12 @@ public class DiscoveryService extends Service {
 	 */
 	protected void  BroadcastMeesage(Profile p) {
 
-		Intent intent = new Intent("com.ad.proxymi.ACTION_MESSAGE");
+		Intent intent = new Intent(ServiceManager.MESSAGE);
 		Profile profile = new Profile();
 		profile = p;
 		profile.setSelfMac(BluetoothAdapter.getDefaultAdapter().getAddress());
 		
-		intent.putExtra("profile",profile);
+		intent.putExtra("Profile",profile);
 		LocalBroadcastManager.getInstance(getApplicationContext());
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
@@ -549,7 +552,7 @@ public class DiscoveryService extends Service {
 
 		
 		if (D) Log.d(TAG,"going to report that discovery has finished");
-		Intent intent = new Intent("com.ad.proxymi.BT_DISCOVERY_FINISHED");
+		Intent intent = new Intent(ServiceManager.BT_DISCOVERY_FINISHED);
 		LocalBroadcastManager.getInstance(getApplicationContext());
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 	}
@@ -569,10 +572,7 @@ public class DiscoveryService extends Service {
     	else D = false;    	
     }
 	
-	public int getRandomNumber() {
-		// TODO Auto-generated method stub
-		return 222;
-	}
+
 	
 	private void printToLog(String msg){
 

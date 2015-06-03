@@ -36,6 +36,7 @@ public class MainActivity extends ListActivity {
 	public   BluetoothDevice  	 device ; 
 	/**initiate IntroMi Framework**/
 	ServiceManager  m;
+	BleServiceManager   bleService;
 	boolean mBound = false;
 	/** application context**/
 	private static Context mContext;
@@ -82,8 +83,12 @@ public class MainActivity extends ListActivity {
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(ServiceManager.MESSAGE));
 		LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter(ServiceManager.BT_DISCOVERY_FINISHED));
 
-		m = ServiceManager.getInstance(mContext);
-		m.setLog(true);
+		
+	    bleService = BleServiceManager.getInstance(mContext);
+	   
+//		m = ServiceManager.getInstance(mContext);
+//		m.setLog(true);
+	    bleService.setLog(true);
 
 	}
 
@@ -191,7 +196,8 @@ public class MainActivity extends ListActivity {
 			   mBluetoothAdapter.enable();			
 			  if (isBtDiscoverable()) {
 			     mScanning = true;
-			     m.startManualScan();
+			     //m.startManualScan();
+			     bleService.start();
 			  }else 
 			  {
 				  Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
@@ -202,7 +208,8 @@ public class MainActivity extends ListActivity {
 			break;
 		case R.id.scanning_stop:
 			mScanning = false;
-			m.stop();
+			//m.stop();
+			bleService.stop();
 			mScanning = false;
 			break;
 		case R.id.register:

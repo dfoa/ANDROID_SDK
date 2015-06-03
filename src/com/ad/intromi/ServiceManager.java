@@ -13,7 +13,7 @@ import android.util.Log;
 import com.ad.intromi.Utils;
 import com.ad.intromi.DiscoveryService.LocalBinder;
 
-
+ 
 
 public class ServiceManager {
 
@@ -30,7 +30,11 @@ public class ServiceManager {
 	/** TAG description*/
 	private static String TAG = "ServiceManager";
 	private static String MANUAL_SCAN = "m";
-
+	
+	/**BLE parameters**/
+	 private static BluetoothLeService mBleService = new BluetoothLeService();
+	 private static boolean mBleBound = false;
+	 
 	private ServiceManager(Context c){
 
 		ServiceManager.context = c;
@@ -124,4 +128,53 @@ public class ServiceManager {
     	   
     	   mService.cleanQeue();
        }
+       
+/*
+ * BLE section
+ *  
+ */
+       public  void  startBle(){	
+           System.out.println("Im going to start BLEservoce");
+   		ServiceArgument  parameters  =  new ServiceArgument("Fiix","http://192.168.50.5", "80");
+   		Intent intent = new Intent(context, BluetoothLeService.class);
+   		intent.putExtra("args",parameters);
+   		context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE); 
+
+   	}
+
+   	public  void stopBle() {
+
+   		// Unbind from the service
+   //		if (mBleBound) {
+ //  			context.unbindService(mBleConnection);
+//   			mBleBound = false;
+ //  		}
+   	}
+       
+       /** Defines callbacks for service binding, passed to bindService() */
+   	private static ServiceConnection mBleConnection = new ServiceConnection() {
+
+   		@Override
+   		public void onServiceConnected(ComponentName className,
+   				IBinder service) {
+                 if (D) Log.v(TAG,"++++ BLE Service connected");
+   			// We've bound to LocalService, cast the IBinder and get LocalService instance
+   			LocalBinder bleBinder = (LocalBinder) service;
+ //  			mBleService = bleBinder.getService();
+   			mBleBound = true;
+   		}
+
+   		@Override
+   		public void onServiceDisconnected(ComponentName arg0) {
+   			if (D) Log.v(TAG,"Service BLE is disconnected");
+   			mBleBound = false;
+   		}
+   	};
+
+         public  void setBleLog(boolean yesNo) {
+   	
+            mService.setLog(yesNo);
+         }
+       
+       
 }

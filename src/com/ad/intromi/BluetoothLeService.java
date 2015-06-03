@@ -15,18 +15,31 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONStringer;
 
 
 /**
@@ -46,7 +59,7 @@ public class BluetoothLeService extends Service {
 	private boolean mFound = false ;
     private static final int REQUEST_ENABLE_BT = 1;
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 3000;
+    private static final long SCAN_PERIOD = 1000;
     private Thread mScanThread;
 	private static final String TAG ="BluetoothLeService" ;
 	private static  boolean D = true;
@@ -69,8 +82,10 @@ public class BluetoothLeService extends Service {
             "com.ad.proxymi.le.EXTRA_DATA";
     public final static UUID UUID_PROXIMI_SERVICES =
             UUID.fromString(GattAttributes.PROXIMI_SERVICE);
-   private String s =     "f44b0282-79a4-3d64-b00f-fda2ab64e20";
-    UUID myUuid= UUID.fromString(s);
+  
+    
+	private String URL_STRING="http://intromi.biz/exec/user_lookup";
+    
     
 	/** The service is starting, due to a call to startService() */
 	@Override
@@ -111,9 +126,14 @@ public class BluetoothLeService extends Service {
 		mHandler = new Handler();
 //Thread to scan every x minutes		
 		
+
+//this is for manual scan
+		
+		scanLeDevice(true);
+		
 		
 
-
+/*
 Thread thread = new Thread("discoverBLE"){
 
 	public void run(){
@@ -148,11 +168,11 @@ Thread thread = new Thread("discoverBLE"){
 	//	}
 }; thread.start();
 
+	*/
+			
 			}
 		
-	
-		
-		
+					
 	
     
     // Implements callback methods for GATT events that the app cares about.  For example,
@@ -174,7 +194,7 @@ Thread thread = new Thread("discoverBLE"){
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
                 Log.i(TAG, "Disconnected from GATT server.");
-                broadcastUpdate(intentAction);
+      //          broadcastUpdate(intentAction);
             }
         }
 
@@ -183,7 +203,12 @@ Thread thread = new Thread("discoverBLE"){
         	
         	  System.out.println("++++onServicesDiscovere+++++");
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+             //   broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+      
+         
+                readServices(gatt.getService(UUID_PROXIMI_SERVICES));
+
+            	
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
             }
@@ -210,7 +235,10 @@ Thread thread = new Thread("discoverBLE"){
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        sendBroadcast(intent);
+       sendBroadcast(intent);
+   
+        
+        
     }
 
     private void broadcastUpdate(final String action,
@@ -255,7 +283,7 @@ Thread thread = new Thread("discoverBLE"){
 
     @Override
     public IBinder onBind(Intent intent) {
-    	if(D) Log.v(TAG,"+++onBind service+++");
+    	if(D) Log.v(TAG,"+++onBind BLE service+++");
         return mBinder;
     }
 
@@ -428,11 +456,11 @@ Thread thread = new Thread("discoverBLE"){
             }, SCAN_PERIOD);
 
             mScanning = true;
-            System.out.println("Okay i am start scanning");
             mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            System.out.println("fnished scanning");
         }
       
     }
@@ -534,4 +562,188 @@ Thread thread = new Thread("discoverBLE"){
 		if (D) Log.v(TAG, msg);
 	}
     
+
+	protected void readServices(BluetoothGattService bluetoothGattService){
+		
+		
+	     if (bluetoothGattService == null) return;
+	   
+	       String  foundDevice = null;
+		   foundDevice = bluetoothGattService.getCharacteristics().get(0).getUuid().toString();  
+	        
+	        System.out.println("This is the characteristics" +bluetoothGattService.getCharacteristics().get(0).getUuid().toString());
+	    	new QueryIdentityFromServer().execute(BluetoothAdapter.getDefaultAdapter().getAddress(),foundDevice.toUpperCase());
+	   
+//	        for (BluetoothGattService gattService : bluetoothGattService) {
+	        
+//	            uuid = gattService.getUuid();
+//	             if(uuid.equals(UUID_PROXIMI_SERVICES)){
+//	            System.out.println("This is the service UUID\n" + uuid);
+//	             System.out.println(gattService.getCharacteristics().get(0).getUuid().toString());
+//	             }
+//	             
+//	        }
+	}
+	
+	
+	
+	private class QueryIdentityFromServer extends AsyncTask<String, Void, String> {
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+		}
+
+		@Override
+		protected  String doInBackground(String...string) {
+
+			String s = null;
+			if (D) Log.v(TAG,"source device  " + string[0]);
+			if (D) Log.v(TAG,"found  device  " + string[1]);
+
+                try {				
+			   s = executeHttpPost(URL_STRING, Utils.buildJson(string[0],string[1],System.currentTimeMillis()));
+                }catch (Throwable e) {
+    				// TODO Auto-generated catch block
+    				e.printStackTrace();
+    			}
+			  
+			
+
+			return s;
+		}
+
+		@Override
+		protected void onPostExecute(String s) {
+			
+         if (!s.isEmpty()) {
+       
+ 
+		 BroadcastMeesage(Utils.parseJson(s));
+         }
 }
+	}
+	
+	public String executeHttpPost(String url, JSONStringer postParameters)   {
+		//   public String executeHttpPost(String url) throws Exception {
+
+		BufferedReader in = null;
+		StringEntity entity = null;
+		HttpResponse response = null;
+		HttpPost request;
+		try {
+			HttpClient client = new DefaultHttpClient();
+			request = new HttpPost(url);
+			String s = "found_nearby=";            	
+			try {
+				entity = new StringEntity(s+ postParameters.toString());
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}                   
+			request.setHeader("Accept", "application/json");
+			request.setHeader("Content-Type", "application/x-www-form-urlencoded");
+			request.setEntity(entity);
+
+			try {
+				response = client.execute(request);
+			} catch (ClientProtocolException e) {
+				Log.e("OTHER EXCEPTIONS", e.toString());
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+				BroadcastErrors(Errors.ERR_NETWORK_IS_DOWN);
+			}
+			int responseCode = response.getStatusLine().getStatusCode();
+			switch(responseCode)
+			{
+			case 200:
+
+				HttpEntity h = response.getEntity();
+				if(h.getContentLength() == 0)
+				{
+				 if (D) Log.v(TAG, "Couldnt find this device in DB");
+                //BroadcastErrors(Errors.ERR_INTROMI_SERVER_IS_UNREACHABLE);
+				}
+				break;
+
+			case 500:
+				  BroadcastErrors(Errors.ERR_INTROMI_SERVER_IS_UNREACHABLE);
+
+				break;
+
+
+			default:
+//				  BroadcastErrors(Errors.ERR_INTROMI_SERVER_IS_UNREACHABLE);
+			} 
+			try {
+				in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			} catch (IllegalStateException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} 
+			StringBuffer sb = new StringBuffer("");
+			String line = "";
+			String NL = System.getProperty("line.separator");
+			try {
+				while ((line = in.readLine()) != null) {
+					sb.append(line + NL);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				in.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			String result = sb.toString();
+			printToLog("This is the result" + result);
+
+			return result;
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	protected void  BroadcastMeesage(Profile p) {
+
+		Intent intent = new Intent(ServiceManager.MESSAGE);
+		Profile profile = new Profile();
+		profile = p;
+		profile.setSelfMac(BluetoothAdapter.getDefaultAdapter().getAddress());
+		
+		intent.putExtra("Profile",profile);
+		LocalBroadcastManager.getInstance(getApplicationContext());
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+	}
+	
+	public void  BroadcastErrors(int e) {
+
+		Intent intent = new Intent(ServiceManager.ERRORS);	
+		intent.putExtra("Error", e);
+		if (D) Log.v(TAG,"Got error number " + e);
+		LocalBroadcastManager.getInstance(getApplicationContext());
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+	}
+
+}
+
+
+
+
+
+
+
+

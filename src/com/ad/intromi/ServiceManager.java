@@ -4,6 +4,7 @@ package com.ad.intromi;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -99,8 +100,11 @@ public class ServiceManager {
 
      public void startManualScan() {
     	 
+    	 BluetoothAdapter adapter= BluetoothAdapter.getDefaultAdapter();
+
     	 if(D) Log.i(TAG,"Start manual scanning");
     	 if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+    		 
         	 startBleManual();  
         }
     	 

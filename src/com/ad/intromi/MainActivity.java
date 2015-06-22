@@ -232,7 +232,7 @@ public class MainActivity extends ListActivity {
 					nameToRegister = name.getText().toString();
 					System.out.println(nameToRegister);
 					Register register = Register.getInstance();
-					register.doRegistration(getApplicationContext(), "ThisIsmiID",nameToRegister);
+					register.doRegistration(getApplicationContext(),"testSdk",nameToRegister);
 				}
 			})
 			.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

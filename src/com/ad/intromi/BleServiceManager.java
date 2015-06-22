@@ -3,7 +3,7 @@ package com.ad.intromi;
 
 
 
-import com.ad.intromi.BluetoothLeService.LocalBinder;
+import com.ad.intromi.BluetoothLeService.BleLocalBinder;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,9 +24,9 @@ public class BleServiceManager {
 	static String TAG = "BleServiceManager";
 
 	private BleServiceManager(Context c){
-
+        
 		BleServiceManager.context = c;
-						
+				 		
 		
 	}
 
@@ -42,20 +42,21 @@ public class BleServiceManager {
 	}
 
 	public  void  start(){	
-        System.out.println("Im going to start BLEservoce");
+        System.out.println("Im going to start BLEseevice ");        
 		ServiceArgument  parameters  =  new ServiceArgument("Fiix","http://192.168.50.5", "80");
 		Intent intent = new Intent(context, BluetoothLeService.class);
 		intent.putExtra("args",parameters);
 		context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE); 
-
+       
 	}
 
 	public  void stop() {
 
-		// Unbind from the service
-		if (mBound) {
+		 if (D) Log.v(TAG,"Trying to unbind service");		    		 		 
+		 if (mBound) {
 			context.unbindService(mConnection);
 			mBound = false;
+			mService.stopSelf();
 		}
 	}
 
@@ -66,8 +67,11 @@ public class BleServiceManager {
 		public void onServiceConnected(ComponentName className,
 				IBinder service) {
               if (D) Log.v(TAG,"++++Service connected");
+   //          if (!mService.initialize()) 
+   //               Log.e(TAG, "Unable to initialize Bluetooth");                 
+             
 			// We've bound to LocalService, cast the IBinder and get LocalService instance
-			LocalBinder binder = (LocalBinder) service;
+			BleLocalBinder binder = (BleLocalBinder) service;
 			mService = binder.getService();
 			mBound = true;
 		}
@@ -83,4 +87,7 @@ public class BleServiceManager {
 	
          mService.setLog(yesNo);
       }
+
 }
+
+

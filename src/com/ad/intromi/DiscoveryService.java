@@ -57,7 +57,7 @@ public class DiscoveryService extends Service {
 	/** print log  */
 	static Boolean D = true;
 	/** scan duration */
-	public int mScanInterval = 60000;
+	public int mScanInterval = 5000;
 	/**run scan or not */
 	boolean isBTRunning =  false;
 	/** TAG description*/
@@ -130,7 +130,7 @@ public class DiscoveryService extends Service {
 	
 			if(D) Log.d(TAG,"Start manual discovery");
 			mBtAdapter.cancelDiscovery();
-			mBtAdapter.startDiscovery();
+//			mBtAdapter.startDiscovery();
 						
 		
 	    
@@ -141,56 +141,58 @@ public class DiscoveryService extends Service {
 		 */
 
 		
-		
-//		thread = new Thread("discover"){
-//
-//			public void run(){
-//				Looper.prepare(); 
-//
-//				//	while(!Thread.currentThread().isInterrupted()){
-//				isBTRunning = true;
-//				 
+	
+	thread = new Thread("discover"){
+
+			public void run(){
+				Looper.prepare(); 
+
+				//	while(!Thread.currentThread().isInterrupted()){
+				isBTRunning = true;
+				 
 //				//               BluetoothAdapter mBluetoothAdapter =BluetoothAdapter.getDefaultAdapter();
-//			  
-//
-//				try { 
-//
-//					while(isBTRunning)
-//					{ 
-//
-//						if (!mBtAdapter.isEnabled())
-//						{
-//							mBtAdapter.enable();  
-//
-//						}
-//						  printToLog("Register..."); ;
-//
-//
-//						mBtAdapter.startDiscovery();
-//						
-//						
-//						if (D) Log.d(TAG,"sleep for " + mScanInterval + " seconds");
-//
-//						Thread.sleep(mScanInterval);
-//						mBtAdapter.cancelDiscovery();
-//
-//						if (D) Log.d(TAG,"Unregister..."); 
-//						//                     unregisterReceiver(mReceiver);
-//					}
-//					Looper.loop();
-//				}
-//				catch (InterruptedException e) {
-//					Log.d(TAG, "BT Scanning stopped");
-//					Looper.myLooper().quit();
-//				}
-//
-//			}     
-//			//	}
-//			
-//		     
-//			
-//			
-//		}; thread.start();
+			  
+
+				try { 
+
+					while(isBTRunning)
+					{ 
+
+						if (!mBtAdapter.isEnabled())
+						{
+							mBtAdapter.enable();  
+
+						}
+						  printToLog("Register..."); ;
+
+
+						mBtAdapter.startDiscovery();
+						
+						
+						if (D) Log.d(TAG,"sleep for " + mScanInterval + " seconds");
+
+						Thread.sleep(mScanInterval);
+						mBtAdapter.cancelDiscovery();
+						isBTRunning = false;
+						BroadcastStatus();
+
+						if (D) Log.d(TAG,"Unregister..."); 
+						//                     unregisterReceiver(mReceiver);
+					}
+					Looper.loop();
+				}
+				catch (InterruptedException e) {
+					Log.d(TAG, "BT Scanning stopped");
+					Looper.myLooper().quit();
+				}
+
+			}     
+			//	}
+			
+		     
+			
+			
+		}; thread.start();
 	
 
 		/*
@@ -241,10 +243,10 @@ public class DiscoveryService extends Service {
 		//checl if to run service in manual mode or automatic mode with cycles
 		
 		
-		if (serviceArgument.getMode().equalsIgnoreCase("m"))
-			 	this.manual = true;
-		else 
-			this.manual = false;
+//		if (serviceArgument.getMode().equalsIgnoreCase("m"))
+//			 	this.manual = true;
+//		else 
+//			this.manual = false;
 		
 		return mBinder;
 	}

@@ -9,7 +9,8 @@ public class GattAttributes {
     private static HashMap<String, String> attributes = new HashMap<String, String>();
 
     public static String PROXIMI_SERVICE = "f44b0282-79a4-3d64-b00f-fda2ab64e200";
-
+    public static String  CLIENT_CHARACTERISTIC_CONFIG = "00002a37-0000-1000-8000-00805f9b34fb";
+    public static String HEART_RATE_MEASUREMENT = "00002a37-0000-1000-8000-00805f9b34fb";
         
     static {
 /*

@@ -1,10 +1,14 @@
 package com.ad.intromi;
 
+import android.bluetooth.BluetoothGatt;
+
+
 public class Item {
 
 	private Long mTime;
 	private int mRssi;	
 	private String mMac;
+    private BluetoothGatt  bleGatt;	
 
 	public void setTime(long time)  
 
@@ -44,6 +48,21 @@ public class Item {
 		return this.mRssi;	
 
 	}
+	
+	public void setGatt(BluetoothGatt gatt)
+
+	{
+		this.bleGatt = gatt;	
+
+	}
+
+	public BluetoothGatt getBleGatt()
+
+	{
+		return this.bleGatt;	
+
+	}
+	
 
 
 }

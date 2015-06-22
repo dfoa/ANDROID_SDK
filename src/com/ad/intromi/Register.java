@@ -55,7 +55,9 @@ public class Register
 		 System.out.println("In do registration");
 		 this.mSelfMac = bluetoothAdapter.getAddress();
 	     this.mUniqueId = uniqueId;
+	     name = Utils.convertToUTF8(name);
 	     this.mName = name;
+	      
 	     
 	     
 		 
@@ -280,6 +282,8 @@ public class Register
 			return mJSONStringer;
 			
 		}
+	
+	 
 	
 
 }
